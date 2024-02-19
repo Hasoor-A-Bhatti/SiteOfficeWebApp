@@ -7,13 +7,17 @@
     <title>Site Office Bookings</title>
     <script>
         var tools = {};
+        var khuddams = {};
         let sheetId = "1zIGf8lBUk1L_uohT0Q14phI_nUls4QLicy2pVUFqZb4";
-        let sheetTitle = "toolSheet";
-        let sheetRange = "A1:G5";
-        let fullUrl = "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?sheet=" + sheetTitle + "&range=" + sheetRange;
+        let khuddamsheetTitle = "khuddamAIMS";
+        let khuddamsheetRange = "A1:G9";
+        let toolsheetTitle = "toolSheet";
+        let toolsheetRange = "A1:G5";
+        let toolfullUrl = "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?sheet=" + toolsheetTitle + "&range=" + toolsheetRange;
+        let khuddamfullUrl = "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?sheet=" + khuddamsheetTitle + "&range=" + khuddamsheetRange;
 
 
-        fetch(fullUrl)
+        fetch(toolfullUrl)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
@@ -42,6 +46,33 @@
             console.error('Error occurred while fetching tools:', error);
         });
 
+        fetch(khuddamfullUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            return response.text();
+        })
+        .then(textData => {
+            const jsonData = JSON.parse(textData.substr(47).slice(0, -2));
+
+            // Parse the fetched data and populate the tools object
+            for (let i = 0; i < jsonData.table.rows.length; i++) {
+                const row = jsonData.table.rows[i].c;
+                khuddams[row[0].v] = {
+                    name: row[1].v,
+                    mobile: row[2].v,
+                    age: row[3].v,
+                    jamaat: row[5].v,
+                    region: (row[6].v)
+                };
+            }
+
+            console.log(tools); // Log the tools object after it has been populated
+        })
+        .catch(error => {
+            console.error('Error occurred while fetching tools:', error);
+        });
     </script>
 </head>
 
@@ -101,7 +132,7 @@
         margin-bottom: 0.5vw;
     }
 
-    #basketList {
+    #basketList, #aimsDetails {
         list-style-type: none;
         padding: 0;
         margin: 0;
@@ -114,7 +145,18 @@
         cursor: pointer;
     }
 
+    #aimsDetails li {
+        padding: 1vw;
+        background-color: #f0f0f0;
+        margin-bottom: 0.5vw;
+        cursor: pointer;
+    }
+
     #basketList li:hover {
+        background-color: #e0e0e0;
+    }
+
+    #aimsDetails li:hover {
         background-color: #e0e0e0;
     }
 
@@ -154,14 +196,12 @@
                 <input type="text" name="aims" id="aims" placeholder="AIMS ID" required>
             </div>
             <div class="form-group">
-                <input type="text" name="name" id="name" placeholder="NAME" required>
-            </div>
+                <h3>Details</h3>
+                <ul id="aimsDetails"></ul>
+            </div>  
             <div class="form-group">
-                <input type="text" name="age" id="age" placeholder="AGE" required>
-            </div>
-            <div class="form-group">
-                <input type="text" name="jamaat" id="jamaat" placeholder="JAMAAT" required>
-            </div>
+                <button type="button" onclick="loadDetails()">Check AIMS Details</button>
+            </div>  
             <div class="form-group">
                 <input type="text" name="item" id="enterProduct" placeholder="Product ID">
             </div>
@@ -185,10 +225,38 @@
     <script>
         let basketItemsArray = [];
         
+        function loadDetails(){
+            event.preventDefault();
+            var aims = document.getElementById('aims').value;
+            //document.getElementById('aims').value = '';
+            if (aims == ''){
+                document.getElementById('aimsDetails').innerHTML = '<li>AIMS ID is required</li>';
+            } else {
+                if (khuddams.hasOwnProperty(aims)){
+                    var nameDetail = khuddams[aims].name;
+                    var ageDetail = khuddams[aims].age;
+                    var jamaatDetail = khuddams[aims].jamaat;
+
+                    var listItem = document.createElement('li');
+                        listItem.textContent = aims + ': ' + nameDetail + ' : ' + ageDetail + ' : ' + jamaatDetail;
+                        listItem.setAttribute('id', aims);
+                        listItem.addEventListener('click', function() {
+                            listItem.remove();
+                        });
+                        document.getElementById('aimsDetails').appendChild(listItem);
+                } else {
+                    document.getElementById('warnings').textContent = 'INVALID AIMS';
+                    setTimeout(() => {
+                        document.getElementById('warnings').textContent = ''
+                    },5000)
+                }
+            }
+        }
+
+
         function addItem() {
             event.preventDefault(); // Prevent form submission
             var productID = document.getElementById('enterProduct').value;
-            var age = document.getElementById('age').value;
             document.getElementById('enterProduct').value = '';
 
             if (!Object.keys(tools).includes(productID)) {
@@ -201,13 +269,7 @@
                 setTimeout(() => {
                     document.getElementById('warnings').textContent = ''
                 },5000)
-            } else if (!checkAgeRequirements(age, productID)){
-                document.getElementById('warnings').textContent = 'AGE RESTRICTION: TOO YOUNG';
-                setTimeout(() => {
-                    document.getElementById('warnings').textContent = ''
-                },5000)
             } else {
-                
                 var listItem = document.createElement('li');
                 listItem.textContent = productID;
                 listItem.setAttribute('id', productID);
@@ -222,14 +284,6 @@
             // Clear the product ID input after adding to the basket
             productID.value = '';
         }   
-
-        function checkAgeRequirements(age, item){
-            if(age >= tools[item].minimumAge){
-                return true;
-            }
-            return false;
-        } 
-
 
         function removeFromBasket(productId) {
             basketItemsArray = basketItemsArray.filter(item => item !== productId);

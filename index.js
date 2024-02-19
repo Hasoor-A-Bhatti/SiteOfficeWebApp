@@ -87,11 +87,6 @@ async function getTools() {
     }
 }
 
-
-
-
-
-
 app.get('/', async (req, res) => {
     console.log("STARTING");
     getKhuddams();
@@ -107,40 +102,33 @@ app.get('/booking', async (req, res) => {
 app.post('/booking', (req, res) => {
     // Access form data
     const aims = req.body.aims;
-    const name = req.body.name;
-    const age = req.body.age;
-    const jamaat = req.body.jamaat;
     const operator = req.body.operator;
     const basketItems = JSON.parse(req.body.basketItems);
-
     let message = "";
 
     if (operator != "99999"){
         message = "Failed to Book due to INVALID Operator details!";
-    } else if (verifyKhuddam(aims, name, age, jamaat)){
-        message = makeBooking(aims, name, age, jamaat, operator, basketItems);
     } else {
-        message = "Failed to Book due to INVALID Khuddam details!";
+        if (!khuddam.hasOwnProperty(aims)) {
+            message = "Khuddam does not exist!";
+        } else {
+            message = makeBooking(aims, operator, basketItems);
+        }
     }
-
-    console.log(bookings);
-    //console.log(basketItems);
-
-    // Send response
     res.render('booking', { successMessage: message});
 });
 
 
-function makeBooking(aims, name, age, jamaat, operator, basketItems) {
+function makeBooking(aims, operator, basketItems) {
     for (let i = 0; i < basketItems.length; i++) {
         if (!bookings.hasOwnProperty(basketItems[i])){
             let currentDate = new Date();
             bookings[basketItems[i]] = {
                 "description": tools[basketItems[i]].description,
                 "aims": aims,
-                "name": name,
-                "age": age,
-                "jamaat": jamaat,
+                "name": khuddam[aims].name,
+                "age": khuddam[aims].age,
+                "jamaat": khuddam[aims].jamaat,
                 "authorisedBy": operator,
                 "bookingTime": currentDate,
                 "Transfers": "none",
@@ -154,9 +142,9 @@ function makeBooking(aims, name, age, jamaat, operator, basketItems) {
             allBookingsMade[basketItems[i]] = {
                 "description": tools[basketItems[i]].description,
                 "aims": aims,
-                "name": name,
-                "age": age,
-                "jamaat": jamaat,
+                "name": khuddam[aims].name,
+                "age": khuddam[aims].age,
+                "jamaat": khuddam[aims].jamaat,
                 "authorisedBy": operator,
                 "bookingTime": currentDate,
                 "Transfers": "none",
@@ -196,20 +184,14 @@ app.post('/returns', (req, res) => {
 
     if (operator != "99999"){
         message = "Failed to process return due to INVALID Operator details!";
-    } else if (verifyKhuddam(aims, name, age, jamaat)){
-        message = processReturn(aims, name, age, jamaat, operator, basketItems);
     } else {
-        message = "Failed to Book due to INVALID Khuddam details!";
+        message = processReturn(aims, name, age, jamaat, operator, basketItems);
     }
-
-    //console.log(bookings);
-    //console.log(basketItems);
-    // Send response
     res.render('returns', { successMessage: message, allBookings: bookings});;
 
 });
 
-function processReturn(aims, name, age, jamaat, operator, basketItems) {
+function processReturn(aims, operator, basketItems) {
     let message = "";
     for (let i = 0; i < basketItems.length; i++) {
         if (bookings.hasOwnProperty(basketItems[i])){
@@ -225,22 +207,22 @@ function processReturn(aims, name, age, jamaat, operator, basketItems) {
 }
 
 
-function processTransfer(oldAims, newAims, name, age, jamaat, operator, basketItems){
+function processTransfer(oldAims, newAims, operator, basketItems){
     let message = "";
     for (let i = 0; i < basketItems.length; i++) {
         if (bookings.hasOwnProperty(basketItems[i])){
             bookings[basketItems[i]].aims = newAims;
-            bookings[basketItems[i]].name = name;
-            bookings[basketItems[i]].age = age;
-            bookings[basketItems[i]].jamaat = jamaat;
+            bookings[basketItems[i]].name = khuddam[newAims].name;
+            bookings[basketItems[i]].age = khuddam[newAims].age;
+            bookings[basketItems[i]].jamaat = khuddam[newAims].jamaat;
             bookings[basketItems[i]].status = "ACTIVE - TRANSFERRED";
 
             let item = basketItems[i];
             if (allBookingsMade.hasOwnProperty(item) && allBookingsMade[item].status === "ACTIVE") {
                 allBookingsMade[item].aims = newAims;
-                allBookingsMade[item].name = name;
-                allBookingsMade[item].age = age;
-                allBookingsMade[item].jamaat = jamaat;
+                allBookingsMade[item].name = khuddam[newAims].name;
+                allBookingsMade[item].age = khuddam[newAims].age;
+                allBookingsMade[item].jamaat = khuddam[newAims].jamaat;
                 allBookingsMade[item].status = "ACTIVE - TRANSFERRED";
                 allBookingsMade[item].transferTimes = new Date();
                 allBookingsMade[item].transferredFrom = oldAims;
@@ -269,24 +251,19 @@ app.get('/transfer', async (req, res) => {
 app.post('/transfer', (req, res) => {
     const newAims = req.body.newAims;
     const oldAims = req.body.oldAims;
-    const name = req.body.name;
-    const age = req.body.age;
-    const jamaat = req.body.jamaat;
     const operator = req.body.operator;
     const basketItems = JSON.parse(req.body.basketItems);
     let message = "";
 
     if (operator != "99999"){
         message = "Failed to process transfer due to INVALID Operator details!";
-    } else if (verifyKhuddam(newAims, name, age, jamaat)){
-        message = processTransfer(oldAims,newAims,name, age, jamaat, operator, basketItems);
     } else {
-        message = "Failed to Book due to INVALID Khuddam details!";
-    }
-
-    //console.log(bookings);
-    //console.log(basketItems);
-    // Send response
+        if (!khuddam.hasOwnProperty(aims)) {
+            message = "Khuddam does not exist!";
+        } else {
+            message = processTransfer(oldAims, newAims,operator, basketItems);
+        }
+    } 
     res.render('returns', { successMessage: message, allBookings: bookings});;
 
 });
@@ -304,11 +281,3 @@ app.get('/operator', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`listening on port http://localhost:${PORT}`);
 });
-
-
-function verifyKhuddam(aims, name, age, jamaat){
-    if (khuddam[aims].name.toLowerCase() == name.toLowerCase() && khuddam[aims].age == age && khuddam[aims].jamaat.toLowerCase() == jamaat.toLowerCase()){
-        return true;
-    }
-    return false;
-}
