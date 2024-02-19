@@ -5,11 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./main.css">
     <title>Site Office Bookings</title>
+    <style>
+        /* Add the provided styles here */
+
+        /* Styles for the password form and content */
+        .passwordForm {
+            font-size: 1.5vw;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        #content-container {
+            display: none;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+
+        #errorMessage {
+            display: none;
+            color: red;
+        }
+
+        /* Styles for the booking label */
+        label {
+            display: block;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .booking-property {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-right: 20px;
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 70vh; /* Set a maximum height for the container */
+        }
+
+    </style>
 </head>
 
 <body>
     <header class="header">
-        <a href="#" class = "logo">OPERATORS</a>
+        <a href="#" class="logo">OPERATORS</a>
         
         <nav class="navbar">
             <a href="/#"><span>HOME</span></a>
@@ -21,7 +77,105 @@
         
     </header>
         
-    <!-- <script src="./index.js"></script> -->
+    <div id="passwordForm" class="passwordForm">
+        <h2>Please Enter the Operator Code </h2>
+        <input type="password" id="password" placeholder="Operator Code">
+        <button onclick="authenticate()">Submit</button>
+        <p id="errorMessage">Incorrect code. Please try again.</p>
+    </div>
+
+    <div id="content-container">
+        <div id="content1" class="content">
+            
+            <h2>Current Bookings</h2>
+            <form id="displayBookings1">
+                <!-- Content for current bookings goes here -->
+                <% for (let key in allBookings) { %>
+                    <% let booking = allBookings[key]; %>
+                    <label class="booking">
+                        <span class="booking-property">Product:</span>
+                        <span><%= key %></span>
+                        <br>
+                        <span class="booking-property">Product Description:</span>
+                        <span><%= booking.description %></span>
+                        <br>
+                        <span class="booking-property">Name:</span>
+                        <span><%= booking.name %></span>
+                        <br>
+                        <span class="booking-property">Jamaat:</span>
+                        <span><%= booking.jamaat %></span>
+                        <br>
+                        <span class="booking-property">Time Booked:</span>
+                        <span><%= booking['bookingTime'] %></span>
+                        <br>
+                        <span class="booking-property">Authorised By:</span>
+                        <span><%= booking['authorisedBy'] %></span>
+                        <br>
+                        <span class="booking-property">Status:</span>
+                        <span><%= booking['status'] %></span>
+                    </label>
+                <% } %>
+            </form>
+        </div>
     
+        <div id="content2" class="content">
+            
+            <h2>All Bookings</h2>
+            <form id="displayBookings2">
+                <% for (let key in totalBookingsMade) { %>
+                    <% let booking = totalBookingsMade[key]; %>
+                    <label class="booking2">
+                        <span class="booking-property">Product:</span>
+                        <span><%= key %></span>
+                        <br>
+                        <span class="booking-property">Product Description:</span>
+                        <span><%= booking.description %></span>
+                        <br>
+                        <span class="booking-property">Name:</span>
+                        <span><%= booking.name %></span>
+                        <br>
+                        <span class="booking-property">Jamaat:</span>
+                        <span><%= booking.jamaat %></span>
+                        <br>
+                        <span class="booking-property">Time Booked:</span>
+                        <span><%= booking['bookingTime'] %></span>
+                        <br>
+                        <span class="booking-property">Authorised By:</span>
+                        <span><%= booking['authorisedBy'] %></span>
+                        <br>
+                        <span class="booking-property">Status:</span>
+                        <span><%= booking['status'] %></span>
+                        <br>
+                        <span class="booking-property">Returned At:</span>
+                        <span><%= booking['returnedAt'] %></span>
+                        <br>
+                        <span class="booking-property">Item Transferred From:</span>
+                        <span><%= booking['transferredFrom'] %></span>
+                        <br>
+                        <span class="booking-property">Item Transferred At:</span>
+                        <span><%= booking['transferTimes'] %></span>
+                    </label>
+                <% } %>
+                <!-- Content for all bookings goes here -->
+            </form>
+        </div>
+    </div>
+    
+
+    <script>
+        function authenticate() {
+            var password = document.getElementById("password").value;
+            // Check if the password is correct
+            if (password === "99999") {
+                // If the password is correct, display the content
+                document.getElementById("content-container").style.display = "flex";
+                // Hide the password form
+                document.getElementById("passwordForm").style.display = "none";
+            } else {
+                // If the password is incorrect, display an error message
+                document.getElementById("errorMessage").style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>

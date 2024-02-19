@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: fantasy;
+    font-family: Arial;
 }
 
 body {
@@ -24,7 +24,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    padding: 20px 100px;
+    padding: 2vh 4vw; /* Adjust padding with relative units */
     background: transparent;
     display: flex;
     justify-content: space-between;
@@ -33,22 +33,22 @@ body {
 }
 
 .logo {
-    font-size: 32px;
-    color: #000000;
+    font-size: 3vw;
+    color: #ffffff;
     text-decoration: none;
     font-weight: 700;
 }
 
 .navbar a {
-    font-size: 18px;
-    color: #000000;
+    font-size: 1.5vw;
+    color: #ffffff;
     font-weight: 500;
     text-decoration: none;
-    margin-left: 40px;
-    position: relative; /* Add this line */
+    margin-left: 4vw; /* Adjust margin with relative units */
+    position: relative;
 }
 
-.navbar a span::before { /* Modify selector */
+.navbar a span::before {
     content: '';
     position: absolute;
     top: 0;
@@ -59,6 +59,6 @@ body {
     transition: 0.3s;
 }
 
-.navbar a:hover span::before { /* Modify selector */
+.navbar a:hover span::before {
     width: 100%;
 }

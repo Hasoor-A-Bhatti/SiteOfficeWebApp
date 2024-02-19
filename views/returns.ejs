@@ -5,7 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./main.css">
     <title>Site Office Bookings</title>
+    <script>
+        var tools = {};
+        let sheetId = "1zIGf8lBUk1L_uohT0Q14phI_nUls4QLicy2pVUFqZb4";
+        let sheetTitle = "toolSheet";
+        let sheetRange = "A1:G5";
+        let fullUrl = "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?sheet=" + sheetTitle + "&range=" + sheetRange;
+
+
+        fetch(fullUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            return response.text();
+        })
+        .then(textData => {
+            const jsonData = JSON.parse(textData.substr(47).slice(0, -2));
+
+            // Parse the fetched data and populate the tools object
+            for (let i = 0; i < jsonData.table.rows.length; i++) {
+                const row = jsonData.table.rows[i].c;
+                tools[row[0].v] = {
+                    description: row[1].v,
+                    manufacturer: row[2].v,
+                    purchaseYear: row[3].v,
+                    condition: row[4].v,
+                    minimumAge: (row[5].v),
+                    comments: row[6].v
+                };
+            }
+
+            console.log(tools); // Log the tools object after it has been populated
+        })
+        .catch(error => {
+            console.error('Error occurred while fetching tools:', error);
+        });
+
+    </script>
 </head>
+
+<style>
+    .returnsForm {
+        margin-top: 10vw;
+        width: 50vw; /* Adjust the width as needed */
+        padding: 0.5vw; /* Adjust padding with relative units */
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); /* Adjust box shadow with relative units */
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 1vw; /* Adjust margin with relative units */
+    }
+
+    .form-header h2 {
+        margin: 0;
+        font-size: 1vw; /* Adjust font size with relative units */
+    }
+
+    .form-group {
+        margin-bottom: 0.5vw; /* Adjust margin with relative units */
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 1vw; /* Adjust padding with relative units */
+        border: 0.2vw solid #ccc; /* Adjust border with relative units */
+        border-radius: 1vw; /* Adjust border radius with relative units */
+    }
+
+    .form-group button {
+        width: 100%;
+        padding: 1vw; /* Adjust padding with relative units */
+        background-color: blue;
+        color: white;
+        border: none;
+        border-radius: 1vw; /* Adjust border radius with relative units */
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .form-group button:hover {
+        background-color: darkblue;
+    }
+
+    #basket {
+            margin-top: 1vw;
+    }
+
+    #basket h2 {
+        text-align: center;
+        font-size: 1vw;
+        margin-bottom: 0.5vw;
+    }
+
+    #basketList {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #basketList li {
+        padding: 1vw;
+        background-color: #f0f0f0;
+        margin-bottom: 0.5vw;
+        cursor: pointer;
+    }
+
+    #basketList li:hover {
+        background-color: #e0e0e0;
+    }
+
+
+
+</style>
 
 <body>
     <header class="header">
@@ -17,11 +132,123 @@
             <a href="/returns"><span>RETURNS</span></a>
             <a href="/transfer"><span>TRANSFER</span></a>
             <a href="/operator"><span>OPERATOR</span></a>
-        </nav>
-        
+        </nav>        
     </header>
+
+    <div class="returnsForm">
+        <div class="form-header">
+            <h2>Returns Form</h2>
+        </div>
         
-    <!-- <script src="./index.js"></script> -->
+        <% if (typeof successMessage !== 'undefined') { %>
+            <div id="successMessage" style="color: rgb(56, 215, 56); margin-bottom: 10px;"> <%= successMessage %> </div>
+        <% } %>
+    
+        <form action="/returns" method="post">
+            <div id="warnings" style="color: rgb(205, 14, 14); margin-bottom: 10px;"></div>
+
+            <div class="form-group">
+                <input type="password" name="operator" id="operator" placeholder="Operator Code" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="aims" id="aims" placeholder="AIMS ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="name" id="name" placeholder="NAME" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="age" id="age" placeholder="AGE" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="jamaat" id="jamaat" placeholder="JAMAAT" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="item" id="enterProductID" placeholder="Product ID">
+            </div>
+            <div class="form-group">
+                <button type="button" onclick="addItem()">Add Item to Basket</button>
+            </div>            
+            <div class="form-group" id="basket">
+                <h2>Basket</h2>
+                <ul id="basketList"></ul>
+                <input type="hidden" name="basketItems" id="basketItems" value="">
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" onclick="prepareBasketItems()">Submit</button>
+            </div>
+        </form>
+    </div>
+
+
+
+    <script>
+        let basketItemsArray = [];
+        
+        function addItem() {
+            event.preventDefault(); // Prevent form submission
+            var productID = document.getElementById('enterProductID').value;
+            var age = document.getElementById('age').value;
+            document.getElementById(enterProductID).value = '';
+        
+            if (!Object.keys(tools).includes(productID)) {
+                document.getElementById('warnings').textContent = 'INVALID PRODUCT SELECTED';
+                setTimeout(() => {
+                    document.getElementById('warnings').textContent = ''
+                },5000)
+            } else if (!(tools[productID].condition == "Y")) {
+                document.getElementById('warnings').textContent = 'PRODUCT NOT AVAILABLE';
+                setTimeout(() => {
+                    document.getElementById('warnings').textContent = ''
+                },5000)
+            } else if (!checkAgeRequirements(age, productID)){
+                document.getElementById('warnings').textContent = 'AGE RESTRICTION: TOO YOUNG';
+                setTimeout(() => {
+                    document.getElementById('warnings').textContent = ''
+                },5000)
+            } else {
+                
+                var listItem = document.createElement('li');
+                listItem.textContent = productID;
+                listItem.setAttribute('id', productID);
+                listItem.addEventListener('click', function() {
+                    listItem.remove();
+                    removeFromBasket(productID);
+                });
+    
+                document.getElementById('basketList').appendChild(listItem);
+                basketItemsArray.push(productID);
+            }
+            // Clear the product ID input after adding to the basket
+            productID.value = '';
+        }   
+
+        function checkAgeRequirements(age, item){
+            if(age >= tools[item].minimumAge){
+                return true;
+            }
+            return false;
+        } 
+
+
+        function removeFromBasket(productId) {
+            basketItemsArray = basketItemsArray.filter(item => item !== productId);
+        }
+
+        function prepareBasketItems() {
+            const basketItemsInput = document.getElementById('basketItems');
+            basketItemsInput.value = JSON.stringify(basketItemsArray);
+        }
+
+        // JavaScript to hide the success message after 5 seconds
+        setTimeout(() => {
+            console.log('successMessag');
+            const successMessage = document.getElementById('successMessage');
+            if (successMessage) {
+                successMessage.style.display = 'none';
+            }
+        }, 5000); // 5000 milliseconds = 5 seconds
+    </script>
     
 </body>
 </html>

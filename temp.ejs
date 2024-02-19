@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./main.css">
+    <title>Site Office Bookings</title>
+</head>
+
+<style>
+    .bookingForm {
+        width: 60vw; /* Adjust the width as needed */
+        padding: 2vw; /* Adjust padding with relative units */
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 2vw rgba(0, 0, 0, 0.1); /* Adjust box shadow with relative units */
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 3vw; /* Adjust margin with relative units */
+    }
+
+    .form-header h2 {
+        margin: 0;
+        font-size: 2.5vw; /* Adjust font size with relative units */
+    }
+
+    .form-group {
+        margin-bottom: 2vw; /* Adjust margin with relative units */
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 2vw; /* Adjust padding with relative units */
+        border: 0.2vw solid #ccc; /* Adjust border with relative units */
+        border-radius: 1vw; /* Adjust border radius with relative units */
+    }
+
+    .form-group button {
+        width: 100%;
+        padding: 2vw; /* Adjust padding with relative units */
+        background-color: blue;
+        color: white;
+        border: none;
+        border-radius: 1vw; /* Adjust border radius with relative units */
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .form-group button:hover {
+        background-color: darkblue;
+    }
+
+</style>
+
+<body>
+    <header class="header">
+        <a href="#" class = "logo">BOOKINGS</a>
+        
+        <nav class="navbar">
+            <a href="/#"><span>HOME</span></a>
+            <a href="/booking"><span>BOOKING</span></a>
+            <a href="/returns"><span>RETURNS</span></a>
+            <a href="/transfer"><span>TRANSFER</span></a>
+            <a href="/operator"><span>OPERATOR</span></a>
+        </nav>        
+    </header>
+
+    <div class="bookingForm">
+        <div class="form-header">
+            <h2>Booking Form</h2>
+        </div>
+        
+        <% if (typeof successMessage !== 'undefined') { %>
+            <div id="successMessage" style="color: rgb(56, 215, 56); margin-bottom: 10px;"> <%= successMessage %> </div>
+        <% } %>
+    
+        <form action="/submit-form" method="post">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function addItem() {
+            var itemName = document.getElementById('itemName').value;
+            var itemPrice = document.getElementById('itemPrice').value;
+
+            if (itemName.trim() === '' || itemPrice.trim() === '') {
+                alert('Please enter both item name and price.');
+                return;
+            }
+
+            var listItem = document.createElement('li');
+            listItem.textContent = itemName + ' - $' + itemPrice;
+
+            listItem.addEventListener('click', function() {
+                listItem.remove();
+            });
+
+            document.getElementById('basketList').appendChild(listItem);
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+
+            // Show success message
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                console.log('successMessage');
+                successMessage.style.display = 'none';
+            }, 5000); // 5000 milliseconds = 5 seconds
+        }
+    </script>
+
+    
+</body>
+</html>
